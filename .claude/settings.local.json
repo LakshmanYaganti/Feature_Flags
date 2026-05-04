@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(java -version)",
-      "PowerShell(docker exec flags-postgres cat /var/lib/postgresql/data/pg_hba.conf 2>&1)"
-    ]
-  }
-}
