@@ -1,0 +1,52 @@
+# ============================================================
+# Feature Flag Service — Backend Configuration
+# ============================================================
+# Run "mvn spring-boot:run" from the backend/ directory.
+# Uses port 5433 for PostgreSQL and 6380 for Redis
+# (different from Job_Scheduler's 5432/6379 so they can run side by side).
+# Docker must be running: docker-compose up -d
+# ============================================================
+
+server:
+  port: 8090  # React frontend proxies /api calls here (see vite.config.js)
+
+spring:
+  datasource:
+    # PostgreSQL on port 5433 (mapped in docker-compose to avoid conflict with Job_Scheduler on 5432)
+    url: jdbc:postgresql://localhost:5434/flagsdb
+    username: flags
+    password: flags123
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Flyway controls schema, Hibernate just validates it matches
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # V1__init.sql creates feature_flags + flag_evaluation_logs tables
+    # and seeds 4 sample flags: new-checkout-flow, beta-dashboard, ai-recommendations, dark-mode-v2
+
+  data:
+    redis:
+      host: localhost
+      port: 6380  # Non-default port — avoids conflict with Job_Scheduler's Redis on 6379
+
+# ============================================================
+# Redis Pub/Sub Channel
+# ============================================================
+# This channel name is used in two places:
+#   1. FeatureFlagService.publishFlagUpdate() — publishes here when any flag changes
+#   2. RedisConfig.java — subscribes FlagUpdateSubscriber to this channel
+# Changing this value here updates both automatically via @Value injection.
+redis:
+  channel:
+    flag-updates: flag.updates
+
+logging:
+  level:
+    com.flags: DEBUG  # show all our application logs in detail

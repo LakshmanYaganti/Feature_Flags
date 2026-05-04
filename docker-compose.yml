@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: flags-postgres
+    environment:
+      POSTGRES_DB: flagsdb
+      POSTGRES_USER: flags
+      POSTGRES_PASSWORD: flags123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: flags-redis
+    ports:
+      - "6380:6379"
+
+volumes:
+  postgres_data:
