@@ -31,17 +31,30 @@ Every connected browser tab updates instantly ⚡
 | Node.js | 18+ |
 | Docker Desktop | Running |
 
-> Note: This project uses **port 5433 for PostgreSQL** and **port 6380 for Redis**
-> (different from Job_Scheduler) so they can run side by side without conflicts.
+> **Ports used by this project** (see `docker-compose.yml` and `backend/src/main/resources/application.yml`):
+>
+> | Service | Host port |
+> |---------|-----------|
+> | PostgreSQL | **5434** (container 5432) |
+> | Redis | **6380** (container 6379) |
+> | Backend (Spring Boot) | **8090** |
+> | Frontend (Vite) | **5175** |
+>
+> The non-default PostgreSQL/Redis ports let this project run side-by-side with other local services without conflicts.
 
 ---
 
 ## 🚀 Step-by-Step: Run the Project
 
+### STEP 0 — Clone the Repository
+```bash
+git clone https://github.com/LakshmanYaganti/Feature_Flags.git
+cd Feature_Flags
+```
+
 ### STEP 1 — Start PostgreSQL and Redis
 **Terminal 1:**
 ```bash
-cd "C:\Users\laksh\OneDrive\Desktop\Github Project\Feature_Flags"
 docker-compose up -d
 ```
 Wait for both containers to show "healthy":
@@ -54,20 +67,24 @@ docker ps   # should show flags-postgres and flags-redis as "Up"
 ### STEP 2 — Start the Backend
 **Terminal 2:**
 ```bash
-cd "C:\Users\laksh\OneDrive\Desktop\Github Project\Feature_Flags\backend"
+cd backend
 mvn spring-boot:run
 ```
 Wait for: `Started FeatureFlagApplication`
 
 **What happens on startup:** Flyway automatically creates the `feature_flags` and
-`flag_evaluation_logs` tables, then seeds 4 sample flags for you to play with.
+`flag_evaluation_logs` tables, then seeds 4 sample flags for you to play with
+(`new-checkout-flow`, `dark-mode`, `ai-recommendations`, `beta-dashboard`).
+
+The backend listens on **http://localhost:8090** and connects to PostgreSQL on
+host port **5434** and Redis on host port **6380**.
 
 ---
 
 ### STEP 3 — Start the Frontend
 **Terminal 3:**
 ```bash
-cd "C:\Users\laksh\OneDrive\Desktop\Github Project\Feature_Flags\frontend"
+cd frontend
 npm install
 npm run dev
 ```
@@ -127,7 +144,9 @@ docker-compose down
 | Error | Cause | Fix |
 |-------|-------|-----|
 | `Cannot connect to Redis on port 6380` | Redis container not up | `docker-compose up -d` |
+| `Cannot connect to PostgreSQL on port 5434` | Postgres container not up | `docker-compose up -d`, check `docker ps` |
 | `Port 5175 already in use` | Another Vite app running | Change port in `vite.config.js` |
+| `Port 8090 already in use` | Another backend running | Stop it, or change `server.port` in `application.yml` |
 | Flags not updating in second tab | WebSocket not connected | Refresh the page once, check the "Live via Redis" badge turns green |
 
 ---
@@ -138,9 +157,11 @@ docker-compose down
 |--------|-----|-------------|
 | GET | http://localhost:8090/api/flags | List all flags |
 | POST | http://localhost:8090/api/flags | Create a flag |
+| PUT | http://localhost:8090/api/flags/{id} | Update a flag |
 | PATCH | http://localhost:8090/api/flags/{id}/toggle | Toggle on/off |
 | POST | http://localhost:8090/api/flags/evaluate | Evaluate for a user |
 | GET | http://localhost:8090/api/flags/{key}/logs | Evaluation history |
+| GET | http://localhost:8090/api/stats | Aggregate evaluation stats |
 
 **Evaluate endpoint example (use Postman):**
 ```json

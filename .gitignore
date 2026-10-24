@@ -4,6 +4,7 @@
 # IDE
 .vscode/
 .idea/
+*.iml
 
 # OS
 .DS_Store
@@ -12,12 +13,38 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.*
 *.env
+!.env.example
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Node
 node_modules/
+frontend/node_modules/
+
+# Java / Maven build outputs
+target/
+backend/target/
+*.class
 
 # Build outputs
-target/
 dist/
+frontend/dist/
 build/
+out/
+
+# Package manager / tooling caches
+.npm/
+.eslintcache
